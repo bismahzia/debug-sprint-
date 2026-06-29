@@ -19,14 +19,14 @@ st.markdown("""
 
 
 # --- CONFIG ---
-SHEET_URL = "https://script.google.com/macros/s/AKfycby9zPW3-W2rKahjprHoF6KIwZ1JC_BCqJ8Jh9mc2Y_6Gkp5mpqHeqMZLpPYxTqL_TuC/exec"
+SHEET_URL = "https://script.google.com/macros/s/AKfycby9iP43-M2rKahJprHoF6KIwZ13C_BCq3B2h9mc2Y_6GkpSapgHeqKZLpYfxTql_TuC/exec"
 ADMIN_PASS = "aL!9zX#2pQ"
 
 # --- BUG DATA ---
 BUGS = [
     {"code": "print('Hello'", "fix": "print('Hello')", "hint": "Close the bracket ')'"},
-    {"code": "x = 5\nprint(x)", "fix": "x = 5\nprint(x)", "hint": "Missing last bracket ')'"},
-    {"code": "for i in range(5:\n print(i)", "fix": "for i in range(5):\n print(i)", "hint": "Both ')' and ':' are missing"},
+    {"code": "x = 5\\nprint(x)", "fix": "x = 5\nprint(x)", ...}
+    {"code": "for i in range(5)\n print(i)", "fix": "for i in range(5):\n print(i)", "hint": "Both ')' and ':' are missing"},
     {"code": "if x = 5:", "fix": "if x == 5:", "hint": "Use '==' for comparison instead of '='"},
     {"code": "my_list = [1,2,3\nprint(my_list)", "fix": "my_list = [1,2,3]\nprint(my_list)", "hint": "']' square bracket is missing"},
     {"code": "def test\n print('ok')", "fix": "def test():\n print('ok')", "hint": "'()' and ':' are missing in function definition"},
