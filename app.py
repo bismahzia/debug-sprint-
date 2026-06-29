@@ -1,94 +1,84 @@
 import streamlit as st
 import requests
-import json
-import uuid
+import time
 import random
-from datetime import datetime
+import json
 
-st.set_page_config(page_title="Debug Sprint Game", layout="centered")
+st.set_page_config(page_title="DebugSprint", layout="centered")
 
-st.markdown("""
-<style>
-    .stApp { background-color: #0E1117; color: #FA; }
-    .stButton>button { background-color: #FF4B4B; color: white; border-radius: 10px; border: 0px; }
-    .stButton>button:hover { background-color: #FF6B6B; }
-    .stTextArea textarea { background-color: #262730; color: #FA; border: 1px solid #4B4B4B; }
-    .stCodeBlock { border: 1px solid #4B4B4B; border-radius: 10px; }
-</style>
-""", unsafe_allow_html=True)
+# ========= CONFIG =========
+SHEET_URL = "https://script.google.com/macros/s/AKfycby9iP43-M2rKahJprHoF6KIwZ13C_BCq3B2h9mc2Y_6GkpSapgHeqKZLpYfxTql_TuC/exec" # Nayi Active URL
+ADMIN_PASS = "aL19zX82pQ" 
 
-
-# --- CONFIG ---
-SHEET_URL = "https://script.google.com/macros/s/AKfycby9iP43-M2rKahJprHoF6KIwZ13C_BCq3B2h9mc2Y_6GkpSapgHeqKZLpYfxTql_TuC/exec"
-ADMIN_PASS = "aL!9zX#2pQ"
-
-# --- BUG DATA ---
+# ========= BUGS LIST =========
 BUGS = [
-    {"code": "print('Hello'", "fix": "print('Hello')", "hint": "Close the bracket ')'"},
-    {"code": "x = 5\\nprint(x)", "fix": "x = 5\nprint(x)", ...}
-    {"code": "for i in range(5)\n print(i)", "fix": "for i in range(5):\n print(i)", "hint": "Both ')' and ':' are missing"},
-    {"code": "if x = 5:", "fix": "if x == 5:", "hint": "Use '==' for comparison instead of '='"},
-    {"code": "my_list = [1,2,3\nprint(my_list)", "fix": "my_list = [1,2,3]\nprint(my_list)", "hint": "']' square bracket is missing"},
-    {"code": "def test\n print('ok')", "fix": "def test():\n print('ok')", "hint": "'()' and ':' are missing in function definition"},
+    {"code": "x = 5\nprint(x)", "fix": "x = 5\nprint(x)", "hint": "Indentation is already correct here"}, # Bug 1
+    {"code": "x = 5\nprint(x)", "fix": "x = 5\nprint(x)", "hint": "Check for double backslash \\n"}, # Bug 2 FIXED
+    {"code": "for i in range(5)\n print(i)", "fix": "for i in range(5):\n print(i)", "hint": "Both ')' and ':' are missing"}, # Bug 3 FIXED
+    {"code": "def add(a b):\n return a+b", "fix": "def add(a, b):\n return a+b", "hint": "Missing comma between parameters"},
+    {"code": "print('Hello'", "fix": "print('Hello')", "hint": "Missing closing bracket )"},
 ]
 
-# --- FUNCTIONS ---
-def init_state():
-    if 'player_id' not in st.session_state:
-        st.session_state.player_id = str(uuid.uuid4())[:8]
-        st.session_state.xp = 0
-        st.session_state.level = 1
-        st.session_state.current_bug = random.choice(BUGS)
-
-def send_to_sheet(bug_id, score):
-    payload = {
-        "player_id": st.session_state.player_id,
-        "bug_id": bug_id,
-        "score": score,
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
+# ========= FUNCTIONS =========
+def send_to_sheet(player_id, xp, level):
+    payload = {"player_id": player_id, "xp": xp, "level": level}
     try:
-        requests.post(SHEET_URL, data=json.dumps(payload), timeout=5)
-    except Exception as e:
-        st.error(f"Failed to send data: {e}")
+        requests.post(SHEET_URL, json=payload, timeout=5)
+    except: pass
 
-def next_bug():
-    st.session_state.current_bug = random.choice(BUGS)
-    st.session_state.xp += 10
-    if st.session_state.xp >= st.session_state.level * 50:
-        st.session_state.level += 1
+def check_answer(user_code, bug):
+    return user_code.strip() == bug["fix"].strip()
 
-# --- APP UI ---
-init_state()
+# ========= SESSION STATE =========
+if "player_id" not in st.session_state:
+    st.session_state.player_id = f"player_{random.randint(1000,9999)}"
+if "level" not in st.session_state: st.session_state.level = 1
+if "xp" not in st.session_state: st.session_state.xp = 0
+if "bug_index" not in st.session_state: st.session_state.bug_index = 0
+if "is_admin" not in st.session_state: st.session_state.is_admin = False
 
-st.title("🐛 Debug Sprint Game")
-st.caption(f"Player ID: `{st.session_state.player_id}` | Level: {st.session_state.level} | XP: {st.session_state.xp}")
+# ========= UI =========
+st.title("🐛 DebugSprint: Fix the Code, Win XP")
 
-st.subheader("Fix This Bug:")
-st.code(st.session_state.current_bug["code"], language="python")
+# Admin Login
+with st.expander("🔑 Admin Panel"):
+    pwd = st.text_input("Enter Admin Password", type="password")
+    if st.button("Login"):
+        if pwd == ADMIN_PASS:
+            st.session_state.is_admin = True
+            st.success("Admin Mode ON")
+        else: st.error("Wrong Password")
 
-user_fix = st.text_area("Write your fixed code here:", height=150, key="fix_box")
+if st.session_state.is_admin:
+    st.subheader("Admin Dashboard")
+    st.write(f"Current Level: {st.session_state.level}")
+    st.write(f"Current XP: {st.session_state.xp}")
+    if st.button("Reset Game"):
+        st.session_state.level = 1; st.session_state.xp = 0; st.session_state.bug_index = 0
+        st.rerun()
+    st.divider()
 
+# Game
+bug = BUGS[st.session_state.bug_index]
+st.subheader(f"Level {st.session_state.level} | XP: {st.session_state.xp}")
+st.code(bug["code"], language="python")
+
+user_code = st.text_area("Paste your fixed code here:", height=150)
 col1, col2 = st.columns(2)
+
 with col1:
     if st.button("Submit Fix"):
-        if user_fix.strip() == st.session_state.current_bug["fix"].strip():
-            st.success("✅ Correct! +10 XP")
-            send_to_sheet(st.session_state.current_bug["code"], 10)
-            next_bug()
-            st.rerun()
+        if check_answer(user_code, bug):
+            st.session_state.xp += 10
+            st.session_state.level += 1
+            st.session_state.bug_index = (st.session_state.bug_index + 1) % len(BUGS)
+            send_to_sheet(st.session_state.player_id, st.session_state.xp, st.session_state.level)
+            st.success(f"✅ Correct! +10 XP. Level Up!")
+            time.sleep(1); st.rerun()
         else:
-            st.error("❌ Incorrect. Try again.")
-            send_to_sheet(st.session_state.current_bug["code"], 0)
-
+            st.error(f"❌ Wrong. Hint: {bug['hint']}")
 with col2:
-    if st.button("Show Hint"):
-        st.info(f"💡 Hint: {st.session_state.current_bug['hint']}")
-
-with st.expander("Admin Panel"):
-    admin_pass_input = st.text_input("Enter Admin Password", type="password")
-    if admin_pass_input == ADMIN_PASS:
-        st.write("Admin Access Granted")
-        st.write("Sheet URL:", SHEET_URL)
-    elif admin_pass_input:
-        st.error("Wrong Password")
+    if st.button("Skip -5 XP"):
+        st.session_state.xp = max(0, st.session_state.xp - 5)
+        st.session_state.bug_index = (st.session_state.bug_index + 1) % len(BUGS)
+        st.rerun()
