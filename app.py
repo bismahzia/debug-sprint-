@@ -1,115 +1,70 @@
+
 import streamlit as st
-st.set_page_config(page_title="Debug Sprint", layout="centered", menu_items=None) # <-- Ye wali line add karo
-import requests
-import time
-import random
 import json
-
-
-
-# ========= CONFIG =========
-import pandas as pd
 import os
 
-def save_to_csv(player_id, xp, level):
-    data = {'Player_ID': [player_id], 'XP': [xp], 'Level': [level], 'Time': [pd.Timestamp.now()]}
-    df = pd.DataFrame(data)
-    file_exists = os.path.isfile('leaderboard.csv')
-    df.to_csv('leaderboard.csv', mode='a', header=not file_exists, index=False)
-ADMIN_PASS = "aL19zX82pQ" 
+st.set_page_config(page_title="Debug Sprint", layout="centered", menu_items=None)
 
+# PLAYER COUNTER - Naya banda aaye to +1
+COUNTER_FILE = "players.json"
+if os.path.exists(COUNTER_FILE):
+    with open(COUNTER_FILE, "r") as f:
+        data = json.load(f)
+else:
+    data = {"count": 0}
+
+if "started" not in st.session_state:
+    data["count"] += 1
+    with open(COUNTER_FILE, "w") as f:
+        json.dump(data, f)
+    st.session_state.started = True
+
+st.title("🐛 Debug Sprint")
+st.caption("8 Levels. Find the bug. Fix it fast.")
+st.metric(label="Total Players", value=data["count"])
+
+if "lvl" not in st.session_state:
+    st.session_state.lvl = 0
+    st.session_state.score = 0
+
+# 8 BUGS ONLY
 BUGS = [
-    {"code": "x = 5\nprint(x)", "fix": "x = 5\nprint(x)", "hint": "Indentation is already correct here"}, # Bug 1
-    {"code": "x = 5\\nprint(x)", "fix": "x = 5\nprint(x)", "hint": "Check for double backslash \\n"}, # Bug 2 FIXED
-    {"code": "for i in range(5)\n print(i)", "fix": "for i in range(5)\n print(i)", "hint": "Both ')' and ':' are missing"}, # Bug 3 FIXED
-    {"code": "def add(a b):\n return a+b", "fix": "def add(a, b):\n return a+b", "hint": "Missing comma between parameters"},
-    {"code": "print('Hello'", "fix": "print('Hello')", "hint": "Missing closing bracket )"},
-    {"code": "name = 'Ali\nprint(name)", "fix": "name = 'Ali'\nprint(name)", "hint": "Missing closing quote '"},
-    {"code": "list = [1,2,3\nprint(list)", "fix": "list = [1,2,3]\nprint(list)", "hint": "Missing closing bracket ]"},
-    {"code": "x=10\nif x>5\nprint('big')", "fix": "x=10\nif x>5:\nprint('big')", "hint": "Missing colon : after if"},
-]# ========= BUGS LIST =========
+  {"code": "x = 5\nif x = 5:\n print('ok')", "fix": "==", "hint": "Assignment vs Comparison"},
+  {"code": "print(10 / 0)", "fix": "try", "hint": "Divide by Zero Error"},
+  {"code": "nums = [1,2,3]\nprint(nums[3])", "fix": "2", "hint": "Index starts at 0"},
+  {"code": "for i in range(5)\n print(i)", "fix": ":", "hint": "Missing colon"},
+  {"code": "name = input()\nif name == 5:\n print('ok')", "fix": "str", "hint": "Type mismatch"},
+  {"code": "def add(a,b)\n return a+b", "fix": ":", "hint": "Missing colon"},
+  {"code": "x = '5' + 5", "fix": "int", "hint": "Can't add str + int"},
+  {"code": "while True: pass", "fix": "break", "hint": "Infinite loop"}
+]
 
-
-
-# ========= FUNCTIONS =========
-
-    
-
-        
-    
-
-def check_answer(user_code, bug):
-    return user_code.strip() == bug["fix"].strip()
-
-# ========= SESSION STATE =========
-if "player_id" not in st.session_state:
-    st.session_state.player_id = f"player_{random.randint(1000,9999)}"
-if "level" not in st.session_state: st.session_state.level = 1
-if "xp" not in st.session_state: st.session_state.xp = 0
-if "bug_index" not in st.session_state: st.session_state.bug_index = 0
-if "is_admin" not in st.session_state: st.session_state.is_admin = False
-
-# ========= UI =========
-st.title("🐛 DebugSprint: Fix the Code, Win XP")
-
-# Admin Login
-with st.expander("🔑 Admin Panel"):
-    pwd = st.text_input("Enter Admin Password", type="password")
-    if st.button("Login"):
-        if pwd == ADMIN_PASS:
-            st.session_state.is_admin = True
-            st.success("Admin Mode ON")
-        else: st.error("Wrong Password")
-
-if st.session_state.is_admin:
-    st.subheader("Admin Dashboard")
-    
-    # YE 5 LINES NAYI ADD KI HAIN 👇
-    if os.path.exists("leaderboard.csv"):
-        df = pd.read_csv("leaderboard.csv")
-        st.dataframe(df, use_container_width=True) # <- Sab bacho ka data yahan
-        st.write(f"Total Players: {df['Player_ID'].nunique()}") # <- Kitne bache
-    else:
-        st.warning("Abhi tak koi khela nahi. Jab 1 bacha Submit karega tab table banega.")
-
-    st.write(f"Current Level: {st.session_state.level}")
-    st.write(f"Current XP: {st.session_state.xp}")
-    if st.button("Reset Game"):
-        st.session_state.level = 1; st.session_state.xp = 0; st.session_state.bug_index = 0
+# GAME
+if st.session_state.lvl >= len(BUGS):
+    st.balloons()
+    st.success(f"🎉 Game Complete! Final Score: {st.session_state.score}/{len(BUGS)}")
+    st.info("Share this app with friends to increase the player count.")
+    if st.button("Play Again"):
+        st.session_state.lvl = 0
+        st.session_state.score = 0
         st.rerun()
-    st.divider()
+else:
+    b = BUGS[st.session_state.lvl]
+    st.subheader(f"Level {st.session_state.lvl+1} / {len(BUGS)}")
+    st.code(b["code"], language="python")
+    ans = st.text_input("What's the fix?", key=st.session_state.lvl)
 
-# Game
-bug = BUGS[st.session_state.bug_index]
-st.subheader(f"Level {st.session_state.level} | XP: {st.session_state.xp}")
-st.code(bug["code"], language="python")
-
-user_code = st.text_area("Paste your fixed code here:", height=150)
-
-col1, col2, col3 = st.columns(3) # 2 ki jaga 3 button
-
-with col1:
-    if st.button("Submit Fix"):
-        if check_answer(user_code, bug):
-            st.session_state.xp += 10
-            st.session_state.level += 1
-            st.session_state.bug_index = (st.session_state.bug_index + 1) % len(BUGS)
-            save_to_csv(st.session_state.player_id, 10, st.session_state.level) # <- Sheet ki jaga CSV
-            st.success(f"✅ Correct! +10 XP. Level Up!")
-            time.sleep(1); st.rerun()
-        else:
-            st.session_state.xp = max(0, st.session_state.xp - 5) # -5 XP
-            st.error(f"❌ Wrong. -5 XP")
-
-with col2:
-    if st.button("💡 Hint -5 XP"): # <- Ye raha Alag Hint Button
-        st.session_state.xp = max(0, st.session_state.xp - 5)
-        st.info(f"Hint: {bug['hint']}")
-        st.rerun()
-
-with col3:
-    if st.button("Skip -5 XP"):
-        st.session_state.xp = max(0, st.session_state.xp - 5)
-        st.session_state.bug_index = (st.session_state.bug_index + 1) % len(BUGS)
-        st.rerun()
-
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Submit"):
+            if ans.strip().lower() == b["fix"]:
+                st.success("Correct! +1")
+                st.session_state.score += 1
+                st.session_state.lvl += 1
+                st.rerun()
+            else:
+                st.error("Wrong. Try again.")
+    with col2:
+        if st.button("Hint"):
+            st.info(b["hint"])
+    st.write(f"**Score:** {st.session_state.score}")
