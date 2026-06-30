@@ -58,6 +58,15 @@ with st.expander("🔑 Admin Panel"):
 
 if st.session_state.is_admin:
     st.subheader("Admin Dashboard")
+    
+    # YE 5 LINES NAYI ADD KI HAIN 👇
+    if os.path.exists("leaderboard.csv"):
+        df = pd.read_csv("leaderboard.csv")
+        st.dataframe(df, use_container_width=True) # <- Sab bacho ka data yahan
+        st.write(f"Total Players: {df['Player_ID'].nunique()}") # <- Kitne bache
+    else:
+        st.warning("Abhi tak koi khela nahi. Jab 1 bacha Submit karega tab table banega.")
+
     st.write(f"Current Level: {st.session_state.level}")
     st.write(f"Current XP: {st.session_state.xp}")
     if st.button("Reset Game"):
