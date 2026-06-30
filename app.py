@@ -1,10 +1,11 @@
 import streamlit as st
+st.set_page_config(page_title="Debug Sprint", layout="centered", menu_items=None) # <-- Ye wali line add karo
 import requests
 import time
 import random
 import json
 
-st.set_page_config(page_title="DebugSprint", layout="centered")
+
 
 # ========= CONFIG =========
 import pandas as pd
