@@ -7,7 +7,14 @@ import json
 st.set_page_config(page_title="DebugSprint", layout="centered")
 
 # ========= CONFIG =========
-SHEET_URL = "https://script.google.com/macros/s/AKfycbxzikPihFFPyvonptufUMg8yEQxKNLfzv..."
+import pandas as pd
+import os
+
+def save_to_csv(player_id, xp, level):
+    data = {'Player_ID': [player_id], 'XP': [xp], 'Level': [level], 'Time': [pd.Timestamp.now()]}
+    df = pd.DataFrame(data)
+    file_exists = os.path.isfile('leaderboard.csv')
+    df.to_csv('leaderboard.csv', mode='a', header=not file_exists, index=False)
 ADMIN_PASS = "aL19zX82pQ" 
 
 # ========= BUGS LIST =========
@@ -20,11 +27,11 @@ BUGS = [
 ]
 
 # ========= FUNCTIONS =========
-def send_to_sheet(player_id, xp, level):
-    payload = {"player_id": player_id, "xp": xp, "level": level}
-    try:
-        requests.post(SHEET_URL, json=payload, timeout=5)
-    except: pass
+
+    
+
+        
+    
 
 def check_answer(user_code, bug):
     return user_code.strip() == bug["fix"].strip()
@@ -64,7 +71,8 @@ st.subheader(f"Level {st.session_state.level} | XP: {st.session_state.xp}")
 st.code(bug["code"], language="python")
 
 user_code = st.text_area("Paste your fixed code here:", height=150)
-col1, col2 = st.columns(2)
+
+col1, col2, col3 = st.columns(3) # 2 ki jaga 3 button
 
 with col1:
     if st.button("Submit Fix"):
@@ -72,13 +80,22 @@ with col1:
             st.session_state.xp += 10
             st.session_state.level += 1
             st.session_state.bug_index = (st.session_state.bug_index + 1) % len(BUGS)
-            send_to_sheet(st.session_state.player_id, st.session_state.xp, st.session_state.level)
+            save_to_csv(st.session_state.player_id, 10, st.session_state.level) # <- Sheet ki jaga CSV
             st.success(f"✅ Correct! +10 XP. Level Up!")
             time.sleep(1); st.rerun()
         else:
-            st.error(f"❌ Wrong. Hint: {bug['hint']}")
+            st.session_state.xp = max(0, st.session_state.xp - 5) # -5 XP
+            st.error(f"❌ Wrong. -5 XP")
+
 with col2:
+    if st.button("💡 Hint -5 XP"): # <- Ye raha Alag Hint Button
+        st.session_state.xp = max(0, st.session_state.xp - 5)
+        st.info(f"Hint: {bug['hint']}")
+        st.rerun()
+
+with col3:
     if st.button("Skip -5 XP"):
         st.session_state.xp = max(0, st.session_state.xp - 5)
         st.session_state.bug_index = (st.session_state.bug_index + 1) % len(BUGS)
         st.rerun()
+
