@@ -17,14 +17,18 @@ def save_to_csv(player_id, xp, level):
     df.to_csv('leaderboard.csv', mode='a', header=not file_exists, index=False)
 ADMIN_PASS = "aL19zX82pQ" 
 
-# ========= BUGS LIST =========
 BUGS = [
     {"code": "x = 5\nprint(x)", "fix": "x = 5\nprint(x)", "hint": "Indentation is already correct here"}, # Bug 1
-    {"code": "x = 5\nprint(x)", "fix": "x = 5\nprint(x)", "hint": "Check for double backslash \\n"}, # Bug 2 FIXED
-    {"code": "for i in range(5)\n print(i)", "fix": "for i in range(5):\n print(i)", "hint": "Both ')' and ':' are missing"}, # Bug 3 FIXED
+    {"code": "x = 5\\nprint(x)", "fix": "x = 5\nprint(x)", "hint": "Check for double backslash \\n"}, # Bug 2 FIXED
+    {"code": "for i in range(5)\n print(i)", "fix": "for i in range(5)\n print(i)", "hint": "Both ')' and ':' are missing"}, # Bug 3 FIXED
     {"code": "def add(a b):\n return a+b", "fix": "def add(a, b):\n return a+b", "hint": "Missing comma between parameters"},
     {"code": "print('Hello'", "fix": "print('Hello')", "hint": "Missing closing bracket )"},
-]
+    {"code": "name = 'Ali\nprint(name)", "fix": "name = 'Ali'\nprint(name)", "hint": "Missing closing quote '"},
+    {"code": "list = [1,2,3\nprint(list)", "fix": "list = [1,2,3]\nprint(list)", "hint": "Missing closing bracket ]"},
+    {"code": "x=10\nif x>5\nprint('big')", "fix": "x=10\nif x>5:\nprint('big')", "hint": "Missing colon : after if"},
+]# ========= BUGS LIST =========
+
+
 
 # ========= FUNCTIONS =========
 
