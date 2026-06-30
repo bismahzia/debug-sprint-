@@ -7,7 +7,7 @@ import json
 st.set_page_config(page_title="DebugSprint", layout="centered")
 
 # ========= CONFIG =========
-SHEET_URL = "https://script.google.com/macros/s/AKfycbzgf0X-Zi68RIUqYJdyPEbd38LIH8pxdahaPYeO3jAUHcTIYsDw9ILg4Bl_C8UhmRS8"
+SHEET_URL = https://script.google.com/macros/s/AKfycbxzikPihFFPyvonptufUMg8yEQxKNLfzv...
 ADMIN_PASS = "aL19zX82pQ" 
 
 # ========= BUGS LIST =========
