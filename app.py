@@ -30,7 +30,7 @@ if "lvl" not in st.session_state:
 # 8 BUGS ONLY
 BUGS = [
   {"code": "x = 5\nif x = 5:\n print('ok')", "fix": "==", "hint": "Assignment vs Comparison"},
-  {"code": "print(10 / 0)", "fix": "try", "hint": "Divide by Zero Error"},
+  
   {"code": "nums = [1,2,3]\nprint(nums[3])", "fix": "2", "hint": "Index starts at 0"},
   {"code": "for i in range(5)\n print(i)", "fix": ":", "hint": "Missing colon"},
   {"code": "name = input()\nif name == 5:\n print('ok')", "fix": "str", "hint": "Type mismatch"},
