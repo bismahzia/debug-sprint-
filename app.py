@@ -4,29 +4,13 @@ import json,os
 
 
 
-# --- Total Players Counter ---
-if not os.path.exists("players.json"):
-    with open("players.json", "w") as f:
-        json.dump({"count": 0}, f)
-
-with open("players.json", "r") as f:
-    data = json.load(f)  # <- Ab `data` define ho gaya = No Error
-
-
-st.set_page_config(page_title="Debug Sprint", layout="centered", menu_items=None)
-
-
-
-
-if "started" not in st.session_state:
-    data["count"] += 1
-    with open("players.json", "w") as f:
-        json.dump(data, f)
-    st.session_state.started = True
-
+# --- Total Players Counter - No File Write ---
+if "count" not in st.session_state:
+    st.session_state.count = 1  # 1st visitor = 1
 st.title("🐛 Debug Sprint")
+st.metric(label="Total Players", value=st.session_state.count) 
 st.caption("7 Levels. Find the bug. Fix it fast.")
-st.metric(label="Total Players", value=data["count"])
+
 
 if "lvl" not in st.session_state:
     st.session_state.lvl = 0
