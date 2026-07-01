@@ -1,33 +1,37 @@
 
 import streamlit as st
-import json
-import os
+import json,os
+
+
+
+# --- Total Players Counter ---
+if not os.path.exists("players.json"):
+    with open("players.json", "w") as f:
+        json.dump({"count": 0}, f)
+
+with open("players.json", "r") as f:
+    data = json.load(f)  # <- Ab `data` define ho gaya = No Error
+
 
 st.set_page_config(page_title="Debug Sprint", layout="centered", menu_items=None)
 
-# PLAYER COUNTER - Naya banda aaye to +1
-COUNTER_FILE = "players.json"
-if os.path.exists(COUNTER_FILE):
-    with open(COUNTER_FILE, "r") as f:
-        data = json.load(f)
-else:
-    data = {"count": 0}
+
+
 
 if "started" not in st.session_state:
     data["count"] += 1
-    with open(COUNTER_FILE, "w") as f:
+    with open("players.json", "w") as f:
         json.dump(data, f)
     st.session_state.started = True
 
 st.title("🐛 Debug Sprint")
-st.caption("8 Levels. Find the bug. Fix it fast.")
+st.caption("7 Levels. Find the bug. Fix it fast.")
 st.metric(label="Total Players", value=data["count"])
 
 if "lvl" not in st.session_state:
     st.session_state.lvl = 0
     st.session_state.score = 0
 
-# 8 BUGS ONLY
 BUGS = [
   {"code": "x = 5\nif x = 5:\n print('ok')", "fix": "==", "hint": "Assignment vs Comparison"},
   
