@@ -47,7 +47,7 @@ BUGS = [
 if st.session_state.lvl >= len(BUGS):
     st.balloons()
     st.success(f"🎉 Game Complete! Final Score: {st.session_state.score}/{len(BUGS)}")
-    st.info("Share this app with friends to increase the player count.")
+    st.info("Share this app with friends to challenge them.")
     if st.button("Play Again"):
         st.session_state.lvl = 0
         st.session_state.score = 0
